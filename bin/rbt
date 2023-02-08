@@ -1,0 +1,228 @@
+#!/usr/bin/python3 -u
+
+import getopt
+import os
+import os.path
+import re
+import sys
+import tempfile
+import shutil
+import stat
+import difflib
+import shlex
+import subprocess
+
+
+def usage(retval=0):
+    print('''NAME:
+
+        %(program)s - replace the text between begin and end tags
+
+SYNOPSYS:
+
+    %(program)s
+         -h, --help                 Display help.
+         -b, --begin-tag            The begin tag to search.
+         -e, --end-tag              The end tag to search.
+         -r, --replace              The string used to replace.
+         -R, --replace-file         The file used to replace.
+    
+    With no FILE, or when FILE is -, read standard input.
+
+AUTHOR
+    
+    Written by Jean-François Giraud.
+
+COPYRIGHT
+
+    Copyright (c) 2012-2021 Jean-François Giraud.  
+    License GPLv3+: GNU GPL version 3 or later <https://www.gnu.org/licenses/gpl-3.0.html>.
+    This is free software: you are free to change and redistribute it.  
+    There is NO WARRANTY, to the extent permitted by law.
+''' % {'program': os.path.basename(sys.argv[0])})
+    sys.exit(retval)
+
+
+def error(message):
+    print(message, file=sys.stderr)
+    sys.exit(1)
+
+
+def chomp(x):
+    if x.endswith("\r\n"): return x[:-2]
+    if x.endswith("\n") or x.endswith("\r"): return x[:-1]
+    return x
+
+
+def eol(x):
+    if x.endswith("\r\n"): return x[-2:]
+    if x.endswith("\n") or x.endswith("\r"): return x[-1:]
+    return ''
+
+
+def readfile(filename, fdw):
+    with open(filename, 'rt') as fd_in:
+        for line in fd_in:
+            fdw(line)
+
+
+def apply_on_file(begin_tag, end_tag, replace, file):
+    (use_stdout_ori, filename) = file
+    use_stdout = use_stdout_ori
+    move = False
+    with open(filename, 'rt') as fd_in:
+        depth = 0
+        if use_stdout:
+            fd_out = open(sys.stdout.fileno(), 'w', closefd=False)
+        else:
+            (fno, temporary_file) = tempfile.mkstemp()
+            fd_out = open(fno, 'wt')
+            move = True
+        with fd_out:
+            for line in fd_in:
+                rest = chomp(line)
+                first = eol(line)
+                while rest:
+                    index_begin = rest.find(begin_tag)
+                    index_end = rest.find(end_tag)
+                    if index_begin == -1 and index_end == -1:
+                        if depth == 0:
+                            fd_out.write(rest)
+                        rest = None
+                        first = ''
+                    elif index_begin >= 0 and index_end == -1:
+                        if depth == 0:
+                            fd_out.write(rest[:index_begin+len(begin_tag)])
+                        depth = depth + 1
+                        rest = rest[index_begin+len(begin_tag):]
+                        if rest == '':
+                            fd_out.write(eol(line))
+                        first = ''
+                    elif index_begin == -1 and index_end >= 0:
+                        depth = depth - 1
+                        if depth < 0:
+                            error("reach end tag before start tag")
+                        if depth == 0:
+                            replace(fd_out.write)
+                            fd_out.write(first)
+                            fd_out.write(rest[index_end:index_end+len(end_tag)])
+                        rest = rest[index_end+len(end_tag):]
+                        first = ''
+                    elif index_begin >= 0 and index_end >= 0:
+                        if index_begin < index_end:
+                            if depth == 0:
+                                fd_out.write(rest[:index_begin+len(begin_tag)])
+                            depth = depth + 1
+                            rest = rest[index_begin+len(begin_tag):]
+                        else:
+                            depth = depth - 1
+                            if depth < 0:
+                                error("reach end tag before start tag")
+                            if depth == 0:
+                                replace(fd_out.write)
+                                fd_out.write(first)
+                                fd_out.write(end_tag)
+                            rest = rest[index_end+len(end_tag):]
+                        first = ''
+                else:
+                    if depth == 0:
+                        fd_out.write(eol(line))
+
+
+
+    if move:
+        #shutil.move(temporary_file, filename)
+        print('Processed: %s' % (filename,), file=sys.stderr)
+
+
+def apply_replacements(begin_tag, end_tag, replace, files):
+    for file in files:
+        apply_on_file(begin_tag, end_tag, replace, file)
+
+
+class Config:
+
+    def __init__(self):
+        self.begin_tag = None
+        self.end_tag = None
+        self.replace = None
+        self.files = []
+
+    def parse(self, arguments):
+        opts, args = [], []
+        try:
+            opts, args = getopt.getopt(arguments, "hb:e:r:R:",
+                                       ["help", "begin-tag=", "end-tag=", "replace=", "replace-file="])
+        except getopt.GetoptError as e:
+            error(e)
+
+        if len(opts) == 0:
+            usage()
+
+        for o, a in opts:
+            if o in ("-h", "--help"):
+                usage()
+            if o in ("-b", "--begin-tag"):
+                self.begin_tag = a
+            if o in ("-e", "--end-tag"):
+                self.end_tag = a
+            if o in ("-r", "--replace"):
+                self.replace = lambda fdw: fdw(a)
+            if o in ("-R", "--replace-file"):
+                self.replace = lambda fdw: readfile(a, fdw)
+            if len(args) == 0:
+                args = ["-"]
+        self.files = args
+
+    def get_files(self):
+        return self.files
+
+    def validate(self):
+        if not self.begin_tag:
+            error("option --begin-tag is required")
+        if not self.end_tag:
+            error("option --end-tag is required")
+        if not self.replace:
+            error("option --replace or --replace-file is required")
+
+
+def create_tmp_and_init(fd_in):
+    (fno, absolute_path) = tempfile.mkstemp()
+    with open(fno, 'wt') as fd_out:
+        for line in fd_in:
+            fd_out.write(line)
+    return absolute_path
+
+
+def op(filename):
+    if filename == '-':
+        return True, create_tmp_and_init(sys.stdin)
+    else:
+        with open(filename, 'rt') as fd_in:
+            if stat.S_ISFIFO(os.fstat(fd_in.fileno()).st_mode):
+                return True, create_tmp_and_init(fd_in)
+            else:
+                return False, filename
+
+
+def as_real_files(files):
+    return [op(x) for x in files]
+
+
+def close_files(files):
+    for is_tmp, filepath in files:
+        if is_tmp:
+            os.remove(filepath)
+
+
+if __name__ == '__main__':
+
+    config = Config()
+    config.parse(sys.argv[1:])
+    config.validate()
+
+    paths = as_real_files(config.get_files())
+
+    apply_replacements(config.begin_tag, config.end_tag, config.replace, paths)
+
+    close_files(paths)
