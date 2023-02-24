@@ -15,7 +15,7 @@ import subprocess
 simulate = False
 
 def usage(retval=0):
-    print('''#BEGIN_DO_NOT_MODIFY:make update-doc
+    print(re.sub('#(BEGIN|END)_DO_NOT_MODIFY:make update-doc\n', '', '''#BEGIN_DO_NOT_MODIFY:make update-doc
 RBT(1)                                                                                                       User commands                                                                                                      RBT(1)
 
 NAME
@@ -81,9 +81,9 @@ AUTHOR
        Copyright © 2023 Jean-François Giraud. License GPLv3+: GNU GPL version 3 or later http://gnu.org/licenses/gpl.html. This is free software: you are free to change and redistribute it. There is NO WARRANTY, to the extent
        permitted by law.
 
-replace-between-tags 0.0.4                                                                                    2023-02-24                                                                                                        RBT(1)
+replace-between-tags 0.0.5                                                                                    2023-02-24                                                                                                        RBT(1)
 #END_DO_NOT_MODIFY:make update-doc
-''' % {'program': os.path.basename(sys.argv[0])})
+''' % {'program': os.path.basename(sys.argv[0])}))
     sys.exit(retval)
 
 
