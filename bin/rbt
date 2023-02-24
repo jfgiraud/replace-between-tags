@@ -12,33 +12,77 @@ import difflib
 import shlex
 import subprocess
 
+simulate = False
 
 def usage(retval=0):
-    print('''NAME:
+    print('''#BEGIN_DO_NOT_MODIFY:make update-doc
+RBT(1)                                                                                                       User commands                                                                                                      RBT(1)
 
-        %(program)s - replace the text between begin and end tags
+NAME
+       rbt - Replace the text between begin and end tags
 
-SYNOPSYS:
+SYNOPSIS
+       rbt [OPTION] [FILE]
 
-    %(program)s
-         -h, --help                 Display help.
-         -b, --begin-tag            The begin tag to search.
-         -e, --end-tag              The end tag to search.
-         -r, --replace              The string used to replace.
-         -R, --replace-file         The file used to replace.
-    
-    With no FILE, or when FILE is -, read standard input.
+DESCRIPTION
+       rbt is a small utility to replace the text between begin and end tags
+
+       With no FILE, or when FILE is -, read standard input.
+
+OPTIONS
+   Select and sort items
+       -h
+           Display help.
+
+       -b string, --begin-tag string
+           The begin tag to search.
+
+       -r string, --replace string
+           The string used to replace.
+
+       -R FILE, --replace-file FILE
+           The file used to replace.
+
+       -s, --simulate
+           Force output to STDOUT.
+
+EXAMPLES
+       Replace between using stdout (-s option)
+
+           $ cat /tmp/lorem_ipsum
+           Lorem ipsum dolor sit amet, consectetur adipiscing elit. *BEGIN*Pellentesque maximus faucibus lectus, in ultricies lorem volutpat in.
+           Sed rutrum risus et vehicula rhoncus. Nunc sed est et eros mollis vehicula. Pellentesque semper dignissim maximus.
+           Praesent in justo et ante faucibus eleifend in ac est. Donec orci magna, pellentesque id libero nec, faucibus porta purus.
+           Pellentesque luctus sollicitudin tortor sit amet accumsan. Nullam mauris felis, egestas in faucibus in, feugiat vel arcu.
+           *END*Cras rhoncus aliquam tristique.
+           $ rbt -s -b '*BEGIN*' -e '*END*' -r 'new text here' /tmp/lorem_ipsum
+           Lorem ipsum dolor sit amet, consectetur adipiscing elit. *BEGIN*new text here
+           *END*Cras rhoncus aliquam tristique.
+
+       Replace in file using the content of a file
+
+           $ cat x
+           Lorem ipsum dolor sit amet, consectetur adipiscing elit. *BEGIN*Pellentesque maximus faucibus lectus, in ultricies lorem volutpat in.
+           Sed rutrum risus et vehicula rhoncus. Nunc sed est et eros mollis vehicula. Pellentesque semper dignissim maximus.
+           Praesent in justo et ante faucibus eleifend in ac est. Donec orci magna, pellentesque id libero nec, faucibus porta purus.
+           Pellentesque luctus sollicitudin tortor sit amet accumsan. Nullam mauris felis, egestas in faucibus in, feugiat vel arcu.
+           *END*Cras rhoncus aliquam tristique.
+           $ cat y
+           mon texte
+           $ rbt -b '*BEGIN*' -e '*END*' -R y x
+           Processed: x
+           $ cat x
+           Lorem ipsum dolor sit amet, consectetur adipiscing elit. *BEGIN*mon texte
+           *END*Cras rhoncus aliquam tristique.
 
 AUTHOR
-    
-    Written by Jean-François Giraud.
+       Written by Jean-François Giraud. == COPYRIGHT
 
-COPYRIGHT
+       Copyright © 2023 Jean-François Giraud. License GPLv3+: GNU GPL version 3 or later http://gnu.org/licenses/gpl.html. This is free software: you are free to change and redistribute it. There is NO WARRANTY, to the extent
+       permitted by law.
 
-    Copyright (c) 2012-2021 Jean-François Giraud.  
-    License GPLv3+: GNU GPL version 3 or later <https://www.gnu.org/licenses/gpl-3.0.html>.
-    This is free software: you are free to change and redistribute it.  
-    There is NO WARRANTY, to the extent permitted by law.
+replace-between-tags 0.0.1                                                                                    2023-02-24                                                                                                        RBT(1)
+#END_DO_NOT_MODIFY:make update-doc
 ''' % {'program': os.path.basename(sys.argv[0])})
     sys.exit(retval)
 
@@ -66,13 +110,13 @@ def readfile(filename, fdw):
             fdw(line)
 
 
-def apply_on_file(begin_tag, end_tag, replace, file):
+def apply_on_file(simulate, begin_tag, end_tag, replace, file):
     (use_stdout_ori, filename) = file
     use_stdout = use_stdout_ori
     move = False
     with open(filename, 'rt') as fd_in:
         depth = 0
-        if use_stdout:
+        if use_stdout or simulate:
             fd_out = open(sys.stdout.fileno(), 'w', closefd=False)
         else:
             (fno, temporary_file) = tempfile.mkstemp()
@@ -130,14 +174,14 @@ def apply_on_file(begin_tag, end_tag, replace, file):
 
 
 
-    if move:
-        #shutil.move(temporary_file, filename)
+    if not simulate and move:
+        shutil.move(temporary_file, filename)
         print('Processed: %s' % (filename,), file=sys.stderr)
 
 
-def apply_replacements(begin_tag, end_tag, replace, files):
+def apply_replacements(simulate, begin_tag, end_tag, replace, files):
     for file in files:
-        apply_on_file(begin_tag, end_tag, replace, file)
+        apply_on_file(simulate, begin_tag, end_tag, replace, file)
 
 
 class Config:
@@ -146,13 +190,14 @@ class Config:
         self.begin_tag = None
         self.end_tag = None
         self.replace = None
+        self.simulate = False
         self.files = []
 
     def parse(self, arguments):
         opts, args = [], []
         try:
-            opts, args = getopt.getopt(arguments, "hb:e:r:R:",
-                                       ["help", "begin-tag=", "end-tag=", "replace=", "replace-file="])
+            opts, args = getopt.getopt(arguments, "hsb:e:r:R:",
+                                       ["help", "simulate", "begin-tag=", "end-tag=", "replace=", "replace-file="])
         except getopt.GetoptError as e:
             error(e)
 
@@ -166,6 +211,8 @@ class Config:
                 self.begin_tag = a
             if o in ("-e", "--end-tag"):
                 self.end_tag = a
+            if o in ("-s", "--simulate"):
+                self.simulate = True
             if o in ("-r", "--replace"):
                 self.replace = lambda fdw: fdw(a)
             if o in ("-R", "--replace-file"):
@@ -223,6 +270,6 @@ if __name__ == '__main__':
 
     paths = as_real_files(config.get_files())
 
-    apply_replacements(config.begin_tag, config.end_tag, config.replace, paths)
+    apply_replacements(config.simulate, config.begin_tag, config.end_tag, config.replace, paths)
 
     close_files(paths)

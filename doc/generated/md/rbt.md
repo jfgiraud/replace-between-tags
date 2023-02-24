@@ -1,41 +1,44 @@
-![<https://github.com/jfgiraud/occurrence-count/actions>](https://img.shields.io/github/actions/workflow/status/jfgiraud/occurrence-count/main.yml?label=CI)
+NAME
+====
 
-Description
+rbt - Replace the text between begin and end tags
+
+SYNOPSIS
+========
+
+**rbt** \[*OPTION*\] \[*FILE*\]
+
+DESCRIPTION
 ===========
 
-**oc** is a small utility to count occurences of a string or pattern in
-each line of files.
+**rbt** is a small utility to replace the text between begin and end
+tags
 
-The destination directory will contain 3 sub-directories: `bin`, `share`
-and `man`.
+With no FILE, or when FILE is `-`, read standard input.
 
-Installation
-============
+OPTIONS
+=======
 
-**Using git repo.**
+Select and sort items
+---------------------
 
-    $ git clone https://github.com/jfgiraud/occurrence-count.git
-    $ cd occurrence-count
-    $ sudo make install DESTDIR=/usr/local
+**-h**  
+Display help.
 
-**Using latest tarball release.**
+**-b** *string*, **--begin-tag** *string*  
+The begin tag to search.
 
-    $ curl -s -L https://api.github.com/repos/jfgiraud/occurrence-count/releases/latest | grep browser_download_url | cut -d':' -f2- | tr -d ' ",' | xargs wget -O occurrence-count.tgz
-    $ sudo tar zxvf occurrence-count.tgz -C /usr/local
+**-r** *string*, **--replace** *string*  
+The string used to replace.
 
-Usage
-=====
+**-R** *FILE*, **--replace-file** *FILE*  
+The file used to replace.
 
-**Use man.**
+**-s**, **--simulate**  
+Force output to STDOUT.
 
-    $ man oc
-
-**Use option.**
-
-    $ oc -h
-
-TLDR
-====
+EXAMPLES
+========
 
 **Replace between using stdout (`-s` option).**
 

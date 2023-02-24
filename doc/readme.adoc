@@ -1,0 +1,42 @@
+image:https://img.shields.io/github/actions/workflow/status/jfgiraud/replace-between-tags/main.yml?label=CI[https://github.com/jfgiraud/replace-between-tags/actions]
+
+== Description
+
+*rbt* Replace the text between begin and end tags
+
+The destination directory will contain 3 sub-directories: `bin`, `share` and `man`.
+
+== Installation
+
+.Using git repo
+[source,shell]
+----
+$ git clone https://github.com/jfgiraud/replace-between-tags.git
+$ cd replace-between-tags
+$ sudo make install DESTDIR=/usr/local
+----
+
+.Using latest tarball release
+[source,shell]
+----
+$ curl -s -L https://api.github.com/repos/jfgiraud/replace-between-tags/releases/latest | grep browser_download_url | cut -d':' -f2- | tr -d ' ",' | xargs wget -O replace-between-tags.tgz
+$ sudo tar zxvf replace-between-tags.tgz -C /usr/local
+----
+
+== Usage
+
+.Use man
+[source,shell]
+----
+$ man rbt
+----
+
+.Use option
+[source,shell]
+----
+$ rbt -h
+----
+
+== TLDR
+
+include::rbt.adoc[tag=examples]
