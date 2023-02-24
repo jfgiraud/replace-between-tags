@@ -1,10 +1,9 @@
-![<https://github.com/jfgiraud/occurrence-count/actions>](https://img.shields.io/github/actions/workflow/status/jfgiraud/occurrence-count/main.yml?label=CI)
+![<https://github.com/jfgiraud/replace-between-tags/actions>](https://img.shields.io/github/actions/workflow/status/jfgiraud/replace-between-tags/main.yml?label=CI)
 
 Description
 ===========
 
-**oc** is a small utility to count occurences of a string or pattern in
-each line of files.
+**rbt** Replace the text between begin and end tags
 
 The destination directory will contain 3 sub-directories: `bin`, `share`
 and `man`.
@@ -14,25 +13,25 @@ Installation
 
 **Using git repo.**
 
-    $ git clone https://github.com/jfgiraud/occurrence-count.git
-    $ cd occurrence-count
+    $ git clone https://github.com/jfgiraud/replace-between-tags.git
+    $ cd replace-between-tags
     $ sudo make install DESTDIR=/usr/local
 
 **Using latest tarball release.**
 
-    $ curl -s -L https://api.github.com/repos/jfgiraud/occurrence-count/releases/latest | grep browser_download_url | cut -d':' -f2- | tr -d ' ",' | xargs wget -O occurrence-count.tgz
-    $ sudo tar zxvf occurrence-count.tgz -C /usr/local
+    $ curl -s -L https://api.github.com/repos/jfgiraud/replace-between-tags/releases/latest | grep browser_download_url | cut -d':' -f2- | tr -d ' ",' | xargs wget -O replace-between-tags.tgz
+    $ sudo tar zxvf replace-between-tags.tgz -C /usr/local
 
 Usage
 =====
 
 **Use man.**
 
-    $ man oc
+    $ man rbt
 
 **Use option.**
 
-    $ oc -h
+    $ rbt -h
 
 TLDR
 ====
