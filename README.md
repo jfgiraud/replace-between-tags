@@ -5,11 +5,11 @@ Description
 
 **rbt** Replace the text between begin and end tags
 
-The destination directory will contain 3 sub-directories: `bin`, `share`
-and `man`.
-
 Installation
 ============
+
+The destination directory will contain 3 sub-directories: `bin`, `share`
+and `man`.
 
 **Using git repo.**
 
