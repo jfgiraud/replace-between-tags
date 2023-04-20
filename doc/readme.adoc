@@ -37,6 +37,6 @@ $ man rbt
 $ rbt -h
 ----
 
-== TLDR
+== Examples
 
 include::rbt.adoc[tag=examples]
