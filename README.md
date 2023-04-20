@@ -33,7 +33,7 @@ Usage
 
     $ rbt -h
 
-TLDR
+Examples
 ====
 
 **Replace between using stdout (`-s` option).**
