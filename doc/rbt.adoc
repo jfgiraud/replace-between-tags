@@ -24,13 +24,11 @@ With no FILE, or when FILE is `-`, read standard input.
 == OPTIONS
 
 // tag::options[]
-=== Select and sort items
-
-*-h*::
-Display help.
-
 *-b* _string_, *--begin-tag* _string_::
 The begin tag to search.
+
+*-e* _string_, *--end-tag* _string_::
+The end tag to search.
 
 *-r* _string_, *--replace* _string_::
 The string used to replace.
@@ -40,6 +38,12 @@ The file used to replace.
 
 *-s*, *--simulate*::
 Force output to STDOUT.
+
+*-h*::
+Display help.
+
+*-v*::
+Display version.
 
 // end::options[]
 

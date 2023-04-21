@@ -14,9 +14,8 @@ import subprocess
 
 simulate = False
 
-def usage(retval=0):
-    print(re.sub('#(BEGIN|END)_DO_NOT_MODIFY:make update-doc\n', '', '''#BEGIN_DO_NOT_MODIFY:make update-doc
-RBT(1)                                                                                                       User commands                                                                                                      RBT(1)
+_USAGE = '''#BEGIN_DO_NOT_MODIFY:make update-doc
+RBT(1)                                                                                          User commands                                                                                          RBT(1)
 
 NAME
        rbt - Replace the text between begin and end tags
@@ -30,12 +29,11 @@ DESCRIPTION
        With no FILE, or when FILE is -, read standard input.
 
 OPTIONS
-   Select and sort items
-       -h
-           Display help.
-
        -b string, --begin-tag string
            The begin tag to search.
+
+       -e string, --end-tag string
+           The end tag to search.
 
        -r string, --replace string
            The string used to replace.
@@ -45,6 +43,12 @@ OPTIONS
 
        -s, --simulate
            Force output to STDOUT.
+
+       -h
+           Display help.
+
+       -v
+           Display version.
 
 EXAMPLES
        Replace between using stdout (-s option)
@@ -76,16 +80,28 @@ EXAMPLES
            *END*Cras rhoncus aliquam tristique.
 
 AUTHOR
-       Written by Jean-François Giraud. == COPYRIGHT
+       Written by Jean-François Giraud.
 
-       Copyright © 2023 Jean-François Giraud. License GPLv3+: GNU GPL version 3 or later http://gnu.org/licenses/gpl.html. This is free software: you are free to change and redistribute it. There is NO WARRANTY, to the extent
-       permitted by law.
+COPYRIGHT
+       Copyright  ©  2023 Jean-François Giraud. License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>. This is free software: you are free to change and redistribute it. There is NO
+       WARRANTY, to the extent permitted by law.
 
-replace-between-tags 0.0.5                                                                                    2023-02-24                                                                                                        RBT(1)
+replace-between-tags 0.0.6                                                                        2023-04-21                                                                                           RBT(1)
 #END_DO_NOT_MODIFY:make update-doc
-''' % {'program': os.path.basename(sys.argv[0])}))
+'''% {'program': os.path.basename(sys.argv[0])}
+
+def usage(retval=0):
+    print('\n'.join(re.sub('#(BEGIN|END)_DO_NOT_MODIFY:make update-doc\n', '', _USAGE).split('\n')[2:-8]))
     sys.exit(retval)
 
+def version():
+    lines = _USAGE.split('\n')
+    for i, line in enumerate(lines):
+        if line.startswith("#END_DO_NOT_MODIFY:make update-doc"):
+            previous_line = lines[i-1]
+            print(previous_line.split()[1])
+            break
+    sys.exit(0)
 
 def error(message):
     print(message, file=sys.stderr)
@@ -196,8 +212,8 @@ class Config:
     def parse(self, arguments):
         opts, args = [], []
         try:
-            opts, args = getopt.getopt(arguments, "hsb:e:r:R:",
-                                       ["help", "simulate", "begin-tag=", "end-tag=", "replace=", "replace-file="])
+            opts, args = getopt.getopt(arguments, "hvsb:e:r:R:",
+                                       ["help", "version", "simulate", "begin-tag=", "end-tag=", "replace=", "replace-file="])
         except getopt.GetoptError as e:
             error(e)
 
@@ -207,6 +223,8 @@ class Config:
         for o, a in opts:
             if o in ("-h", "--help"):
                 usage()
+            if o in ("-v", "--version"):
+                version()
             if o in ("-b", "--begin-tag"):
                 self.begin_tag = a
             if o in ("-e", "--end-tag"):

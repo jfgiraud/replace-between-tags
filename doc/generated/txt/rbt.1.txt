@@ -1,4 +1,4 @@
-RBT(1)                                                                                                       User commands                                                                                                      RBT(1)
+RBT(1)                                                                                          User commands                                                                                          RBT(1)
 
 NAME
        rbt - Replace the text between begin and end tags
@@ -12,12 +12,11 @@ DESCRIPTION
        With no FILE, or when FILE is -, read standard input.
 
 OPTIONS
-   Select and sort items
-       -h
-           Display help.
-
        -b string, --begin-tag string
            The begin tag to search.
+
+       -e string, --end-tag string
+           The end tag to search.
 
        -r string, --replace string
            The string used to replace.
@@ -27,6 +26,12 @@ OPTIONS
 
        -s, --simulate
            Force output to STDOUT.
+
+       -h
+           Display help.
+
+       -v
+           Display version.
 
 EXAMPLES
        Replace between using stdout (-s option)
@@ -58,9 +63,10 @@ EXAMPLES
            *END*Cras rhoncus aliquam tristique.
 
 AUTHOR
-       Written by Jean-François Giraud. == COPYRIGHT
+       Written by Jean-François Giraud.
 
-       Copyright © 2023 Jean-François Giraud. License GPLv3+: GNU GPL version 3 or later http://gnu.org/licenses/gpl.html. This is free software: you are free to change and redistribute it. There is NO WARRANTY, to the extent
-       permitted by law.
+COPYRIGHT
+       Copyright  ©  2023 Jean-François Giraud. License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>. This is free software: you are free to change and redistribute it. There is NO
+       WARRANTY, to the extent permitted by law.
 
-replace-between-tags 0.0.5                                                                                    2023-02-24                                                                                                        RBT(1)
+replace-between-tags 0.0.6                                                                        2023-04-21                                                                                           RBT(1)

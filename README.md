@@ -34,7 +34,7 @@ Usage
     $ rbt -h
 
 Examples
-====
+========
 
 **Replace between using stdout (`-s` option).**
 

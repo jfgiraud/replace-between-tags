@@ -19,14 +19,11 @@ With no FILE, or when FILE is `-`, read standard input.
 OPTIONS
 =======
 
-Select and sort items
----------------------
-
-**-h**  
-Display help.
-
 **-b** *string*, **--begin-tag** *string*  
 The begin tag to search.
+
+**-e** *string*, **--end-tag** *string*  
+The end tag to search.
 
 **-r** *string*, **--replace** *string*  
 The string used to replace.
@@ -36,6 +33,12 @@ The file used to replace.
 
 **-s**, **--simulate**  
 Force output to STDOUT.
+
+**-h**  
+Display help.
+
+**-v**  
+Display version.
 
 EXAMPLES
 ========
