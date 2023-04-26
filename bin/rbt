@@ -86,13 +86,21 @@ COPYRIGHT
        Copyright  ©  2023 Jean-François Giraud. License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>. This is free software: you are free to change and redistribute it. There is NO
        WARRANTY, to the extent permitted by law.
 
-replace-between-tags 0.0.7                                                                        2023-04-21                                                                                           RBT(1)
+replace-between-tags 0.0.8                                                                        2023-04-21                                                                                           RBT(1)
 #END_DO_NOT_MODIFY:make update-doc
-'''% {'program': os.path.basename(sys.argv[0])}
+'''
 
 def usage(retval=0):
-    print('\n'.join(re.sub('#(BEGIN|END)_DO_NOT_MODIFY:make update-doc\n', '', _USAGE).split('\n')[2:-8]))
-    sys.exit(retval)
+    lines = _USAGE.split('\n')
+    display = False
+    for i, line in enumerate(lines):
+        if line.startswith("NAME"):
+            display = True
+        if line.startswith("AUTHOR"):
+            display = False
+        if display:
+            print(line)
+    sys.exit(0)
 
 def version():
     lines = _USAGE.split('\n')
