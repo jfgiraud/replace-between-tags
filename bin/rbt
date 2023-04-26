@@ -90,7 +90,7 @@ replace-between-tags 0.0.8                                                      
 #END_DO_NOT_MODIFY:make update-doc
 '''
 
-def usage(retval=0):
+def usage():
     lines = _USAGE.split('\n')
     display = False
     for i, line in enumerate(lines):
