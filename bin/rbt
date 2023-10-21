@@ -15,7 +15,7 @@ import subprocess
 simulate = False
 
 _USAGE = '''#BEGIN_DO_NOT_MODIFY:make update-doc
-RBT(1)                                                                                          User commands                                                                                          RBT(1)
+RBT(1)                                                            User commands                                                           RBT(1)
 
 NAME
        rbt - Replace the text between begin and end tags
@@ -80,13 +80,12 @@ EXAMPLES
            *END*Cras rhoncus aliquam tristique.
 
 AUTHOR
-       Written by Jean-François Giraud.
+       Written by Jean-François Giraud. == COPYRIGHT
 
-COPYRIGHT
-       Copyright  ©  2023 Jean-François Giraud. License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>. This is free software: you are free to change and redistribute it. There is NO
-       WARRANTY, to the extent permitted by law.
+       Copyright © 2023 Jean-François Giraud. License GPLv3+: GNU GPL version 3 or later http://gnu.org/licenses/gpl.html. This is free
+       software: you are free to change and redistribute it. There is NO WARRANTY, to the extent permitted by law.
 
-replace-between-tags 0.0.8                                                                        2023-04-21                                                                                           RBT(1)
+replace-between-tags 0.0.10                                        2023-10-21                                                             RBT(1)
 #END_DO_NOT_MODIFY:make update-doc
 '''
 
@@ -133,9 +132,8 @@ def readfile(filename, fdw):
         for line in fd_in:
             fdw(line)
 
-
-def apply_on_file(simulate, begin_tag, end_tag, replace, file):
-    (use_stdout_ori, filename) = file
+def apply_on_file(simulate, begin_tag, end_tag, delete_tags, replace, fileinfo):
+    (use_stdout_ori, filename) = fileinfo
     use_stdout = use_stdout_ori
     move = False
     with open(filename, 'rt') as fd_in:
@@ -160,7 +158,10 @@ def apply_on_file(simulate, begin_tag, end_tag, replace, file):
                         first = ''
                     elif index_begin >= 0 and index_end == -1:
                         if depth == 0:
-                            fd_out.write(rest[:index_begin+len(begin_tag)])
+                            if not delete_tags:
+                                fd_out.write(rest[:index_begin+len(begin_tag)])
+                            else:
+                                fd_out.write(rest[:index_begin])
                         depth = depth + 1
                         rest = rest[index_begin+len(begin_tag):]
                         if rest == '':
@@ -173,13 +174,19 @@ def apply_on_file(simulate, begin_tag, end_tag, replace, file):
                         if depth == 0:
                             replace(fd_out.write)
                             fd_out.write(first)
-                            fd_out.write(rest[index_end:index_end+len(end_tag)])
+                            if not delete_tags:
+                                fd_out.write(rest[index_end:index_end+len(end_tag)])
+                            else:
+                                fd_out.write(rest[index_end:index_end])
                         rest = rest[index_end+len(end_tag):]
                         first = ''
                     elif index_begin >= 0 and index_end >= 0:
                         if index_begin < index_end:
                             if depth == 0:
-                                fd_out.write(rest[:index_begin+len(begin_tag)])
+                                if not delete_tags:
+                                    fd_out.write(rest[:index_begin+len(begin_tag)])
+                                else:
+                                    fd_out.write(rest[:index_begin])
                             depth = depth + 1
                             rest = rest[index_begin+len(begin_tag):]
                         else:
@@ -188,24 +195,24 @@ def apply_on_file(simulate, begin_tag, end_tag, replace, file):
                                 error("reach end tag before start tag")
                             if depth == 0:
                                 replace(fd_out.write)
+                                fd_out.write('hello')
                                 fd_out.write(first)
-                                fd_out.write(end_tag)
+                                if not delete_tags:
+                                    fd_out.write(end_tag)
                             rest = rest[index_end+len(end_tag):]
                         first = ''
                 else:
                     if depth == 0:
                         fd_out.write(eol(line))
 
-
-
     if not simulate and move:
         shutil.move(temporary_file, filename)
         print('Processed: %s' % (filename,), file=sys.stderr)
 
 
-def apply_replacements(simulate, begin_tag, end_tag, replace, files):
-    for file in files:
-        apply_on_file(simulate, begin_tag, end_tag, replace, file)
+def apply_replacements(simulate, begin_tag, end_tag, delete_tags, replace, files):
+    for afile in files:
+        apply_on_file(simulate, begin_tag, end_tag, delete_tags, replace, afile)
 
 
 class Config:
@@ -215,13 +222,15 @@ class Config:
         self.end_tag = None
         self.replace = None
         self.simulate = False
+        self.delete_tags = False
         self.files = []
 
     def parse(self, arguments):
         opts, args = [], []
         try:
-            opts, args = getopt.getopt(arguments, "hvsb:e:r:R:",
-                                       ["help", "version", "simulate", "begin-tag=", "end-tag=", "replace=", "replace-file="])
+            opts, args = getopt.getopt(arguments, "hvsdb:e:r:R:",
+                                       ["help", "version", "simulate", "delete-tags", "begin-tag=", "end-tag=", "replace=",
+                                       "replace-file="])
         except getopt.GetoptError as e:
             error(e)
 
@@ -239,10 +248,14 @@ class Config:
                 self.end_tag = a
             if o in ("-s", "--simulate"):
                 self.simulate = True
+            if o in ("-d", "--delete-tags"):
+                self.delete_tags = True
             if o in ("-r", "--replace"):
-                self.replace = lambda fdw: fdw(a)
+                # if -s in last position in the command line, a=''
+                # https://stackoverflow.com/questions/21053988/lambda-function-accessing-outside-variable
+                self.replace = lambda fdw, a=a: fdw(a)
             if o in ("-R", "--replace-file"):
-                self.replace = lambda fdw: readfile(a, fdw)
+                self.replace = lambda fdw, a=a: readfile(a, fdw)
             if len(args) == 0:
                 args = ["-"]
         self.files = args
@@ -295,7 +308,6 @@ if __name__ == '__main__':
     config.validate()
 
     paths = as_real_files(config.get_files())
-
-    apply_replacements(config.simulate, config.begin_tag, config.end_tag, config.replace, paths)
+    apply_replacements(config.simulate, config.begin_tag, config.end_tag, config.delete_tags, config.replace, paths)
 
     close_files(paths)

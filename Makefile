@@ -28,6 +28,7 @@ usage:
 install-dependencies:
 	apt install asciidoctor
 	apt install pandoc
+	apt install gawk
 
 /usr/bin/asciidoctor:
 	echo "You must install dependencies."

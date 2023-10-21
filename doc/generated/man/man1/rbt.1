@@ -1,23 +1,32 @@
 '\" t
 .\"     Title: rbt
-.\"    Author: [see the "AUTHORS" section]
-.\" Generator: Asciidoctor 1.5.5
-.\"      Date: 2023-04-21
+.\"    Author: [see the "AUTHOR(S)" section]
+.\" Generator: Asciidoctor 2.0.12
+.\"      Date: 2023-10-21
 .\"    Manual: User commands
-.\"    Source: replace-between-tags 0.0.8
+.\"    Source: replace-between-tags 0.0.10
 .\"  Language: English
 .\"
-.TH "RBT" "1" "2023-04-21" "replace\-between\-tags 0.0.8" "User commands"
+.TH "RBT" "1" "2023-10-21" "replace\-between\-tags 0.0.10" "User commands"
 .ie \n(.g .ds Aq \(aq
 .el       .ds Aq '
 .ss \n[.ss] 0
 .nh
 .ad l
 .de URL
-\\$2 \(laURL: \\$1 \(ra\\$3
+\fI\\$2\fP <\\$1>\\$3
 ..
-.if \n[.g] .mso www.tmac
-.LINKSTYLE blue R < >
+.als MTO URL
+.if \n[.g] \{\
+.  mso www.tmac
+.  am URL
+.    ad l
+.  .
+.  am MTO
+.    ad l
+.  .
+.  LINKSTYLE blue R < >
+.\}
 .SH "NAME"
 rbt \- Replace the text between begin and end tags
 .SH "SYNOPSIS"
@@ -27,7 +36,7 @@ rbt \- Replace the text between begin and end tags
 .sp
 \fBrbt\fP is a small utility to replace the text between begin and end tags
 .sp
-With no FILE, or when FILE is \f[CR]\-\fP, read standard input.
+With no FILE, or when FILE is \f(CR\-\fP, read standard input.
 .SH "OPTIONS"
 .sp
 \fB\-b\fP \fIstring\fP, \fB\-\-begin\-tag\fP \fIstring\fP
@@ -66,13 +75,12 @@ Display version.
 .RE
 .SH "EXAMPLES"
 .sp
-.B Replace between using stdout (\f[CR]\-s\fP option)
+.B Replace between using stdout (\f(CR\-s\fP option)
 .br
 .sp
-.if n \{\
-.RS 4
-.\}
+.if n .RS 4
 .nf
+.fam C
 $ cat /tmp/lorem_ipsum
 Lorem ipsum dolor sit amet, consectetur adipiscing elit. *BEGIN*Pellentesque maximus faucibus lectus, in ultricies lorem volutpat in.
 Sed rutrum risus et vehicula rhoncus. Nunc sed est et eros mollis vehicula. Pellentesque semper dignissim maximus.
@@ -82,18 +90,16 @@ Pellentesque luctus sollicitudin tortor sit amet accumsan. Nullam mauris felis, 
 $ rbt \-s \-b \(aq*BEGIN*\(aq \-e \(aq*END*\(aq \-r \(aqnew text here\(aq /tmp/lorem_ipsum
 Lorem ipsum dolor sit amet, consectetur adipiscing elit. *BEGIN*new text here
 *END*Cras rhoncus aliquam tristique.
+.fam
 .fi
-.if n \{\
-.RE
-.\}
+.if n .RE
 .sp
 .B Replace in file using the content of a file
 .br
 .sp
-.if n \{\
-.RS 4
-.\}
+.if n .RS 4
 .nf
+.fam C
 $ cat x
 Lorem ipsum dolor sit amet, consectetur adipiscing elit. *BEGIN*Pellentesque maximus faucibus lectus, in ultricies lorem volutpat in.
 Sed rutrum risus et vehicula rhoncus. Nunc sed est et eros mollis vehicula. Pellentesque semper dignissim maximus.
@@ -107,14 +113,13 @@ Processed: x
 $ cat x
 Lorem ipsum dolor sit amet, consectetur adipiscing elit. *BEGIN*mon texte
 *END*Cras rhoncus aliquam tristique.
+.fam
 .fi
-.if n \{\
-.RE
-.\}
+.if n .RE
 .SH "AUTHOR"
 .sp
 Written by Jean\-François Giraud.
-.SH "COPYRIGHT"
+== COPYRIGHT
 .sp
 Copyright \(co 2023 Jean\-François Giraud.  License GPLv3+: GNU GPL version 3 or later \c
 .URL "http://gnu.org/licenses/gpl.html" "" "."
