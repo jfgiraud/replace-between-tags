@@ -15,7 +15,7 @@ import subprocess
 simulate = False
 
 _USAGE = '''#BEGIN_DO_NOT_MODIFY:make update-doc
-RBT(1)                                                            User commands                                                           RBT(1)
+RBT(1)                                                                User commands                                                               RBT(1)
 
 NAME
        rbt - Replace the text between begin and end tags
@@ -82,10 +82,10 @@ EXAMPLES
 AUTHOR
        Written by Jean-François Giraud. == COPYRIGHT
 
-       Copyright © 2023 Jean-François Giraud. License GPLv3+: GNU GPL version 3 or later http://gnu.org/licenses/gpl.html. This is free
-       software: you are free to change and redistribute it. There is NO WARRANTY, to the extent permitted by law.
+       Copyright © 2023 Jean-François Giraud. License GPLv3+: GNU GPL version 3 or later http://gnu.org/licenses/gpl.html. This is free software: you
+       are free to change and redistribute it. There is NO WARRANTY, to the extent permitted by law.
 
-replace-between-tags 0.0.11                                        2023-10-21                                                             RBT(1)
+replace-between-tags 0.0.12                                            2023-10-21                                                                 RBT(1)
 #END_DO_NOT_MODIFY:make update-doc
 '''
 
