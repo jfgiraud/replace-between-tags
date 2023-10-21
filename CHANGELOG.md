@@ -1,5 +1,8 @@
 # CHANGELOG
 
+## 0.0.11 (2023-10-21)
+* Release
+
 ## 0.0.10 (2023-10-21)
 * Add dependency to gawk
 
