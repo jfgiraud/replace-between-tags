@@ -82,7 +82,7 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit. new text here
 Cras rhoncus aliquam tristique.
 ----
 
-.Replace in file using the content of a file
+.Replace in file using the content of a file (`-R` option)
 [source,shell]
 ----
 $ cat x
