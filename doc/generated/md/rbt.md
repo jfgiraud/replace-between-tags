@@ -34,6 +34,9 @@ The file used to replace.
 **-s**, **--simulate**  
 Force output to STDOUT.
 
+**-d**, **--delete**  
+Delete begin/end tags after replacing.
+
 **-h**  
 Display help.
 
@@ -43,7 +46,7 @@ Display version.
 EXAMPLES
 ========
 
-**Replace between using stdout (`-s` option).**
+**Replace between tags using stdout (`-s` option).**
 
     $ cat /tmp/lorem_ipsum
     Lorem ipsum dolor sit amet, consectetur adipiscing elit. *BEGIN*Pellentesque maximus faucibus lectus, in ultricies lorem volutpat in.
@@ -54,6 +57,20 @@ EXAMPLES
     $ rbt -s -b '*BEGIN*' -e '*END*' -r 'new text here' /tmp/lorem_ipsum
     Lorem ipsum dolor sit amet, consectetur adipiscing elit. *BEGIN*new text here
     *END*Cras rhoncus aliquam tristique.
+
+**Replace infile between tags and delete begin/end tags (`-d` option).**
+
+    $ cat /tmp/lorem_ipsum
+    Lorem ipsum dolor sit amet, consectetur adipiscing elit. *BEGIN*Pellentesque maximus faucibus lectus, in ultricies lorem volutpat in.
+    Sed rutrum risus et vehicula rhoncus. Nunc sed est et eros mollis vehicula. Pellentesque semper dignissim maximus.
+    Praesent in justo et ante faucibus eleifend in ac est. Donec orci magna, pellentesque id libero nec, faucibus porta purus.
+    Pellentesque luctus sollicitudin tortor sit amet accumsan. Nullam mauris felis, egestas in faucibus in, feugiat vel arcu.
+    *END*Cras rhoncus aliquam tristique.
+    $ rbt -d -b '*BEGIN*' -e '*END*' -r 'new text here' -d /tmp/lorem_ipsum
+    Processed: /tmp/lorem_ipsum
+    $ cat /tmp/lorem_ipsum
+    Lorem ipsum dolor sit amet, consectetur adipiscing elit. new text here
+    Cras rhoncus aliquam tristique.
 
 **Replace in file using the content of a file.**
 

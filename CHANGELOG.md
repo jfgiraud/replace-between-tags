@@ -1,5 +1,8 @@
 # CHANGELOG
 
+## 0.0.13 (2023-10-23)
+* Documentation
+
 ## 0.0.12 (2023-10-21)
 * Release
 
