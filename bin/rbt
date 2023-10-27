@@ -1,4 +1,5 @@
 #!/usr/bin/python3 -u
+# -*- coding: utf-8 -*-
 
 import getopt
 import os
@@ -150,7 +151,7 @@ def readfile(filename, fdw):
         for line in fd_in:
             fdw(line)
 
-def apply_on_file(simulate, begin_tag, end_tag, delete_tags, replace, fileinfo):
+def apply_on_file(config, fileinfo):
     (use_stdout_ori, filename) = fileinfo
     use_stdout = use_stdout_ori
     move = False
@@ -167,8 +168,8 @@ def apply_on_file(simulate, begin_tag, end_tag, delete_tags, replace, fileinfo):
                 rest = chomp(line)
                 first = eol(line)
                 while rest:
-                    index_begin = rest.find(begin_tag)
-                    index_end = rest.find(end_tag)
+                    index_begin = rest.find(config.begin_tag)
+                    index_end = rest.find(config.end_tag)
                     if index_begin == -1 and index_end == -1:
                         if depth == 0:
                             fd_out.write(rest)
@@ -176,12 +177,12 @@ def apply_on_file(simulate, begin_tag, end_tag, delete_tags, replace, fileinfo):
                         first = ''
                     elif index_begin >= 0 and index_end == -1:
                         if depth == 0:
-                            if not delete_tags:
-                                fd_out.write(rest[:index_begin+len(begin_tag)])
+                            if not config.delete_tags:
+                                fd_out.write(rest[:index_begin+len(config.begin_tag)])
                             else:
                                 fd_out.write(rest[:index_begin])
                         depth = depth + 1
-                        rest = rest[index_begin+len(begin_tag):]
+                        rest = rest[index_begin+len(config.begin_tag):]
                         if rest == '':
                             fd_out.write(eol(line))
                         first = ''
@@ -190,34 +191,35 @@ def apply_on_file(simulate, begin_tag, end_tag, delete_tags, replace, fileinfo):
                         if depth < 0:
                             error("reach end tag before start tag")
                         if depth == 0:
-                            replace(fd_out.write)
+                            if config.replace:
+                                config.replace(fd_out.write)
                             fd_out.write(first)
-                            if not delete_tags:
-                                fd_out.write(rest[index_end:index_end+len(end_tag)])
+                            if not config.delete_tags:
+                                fd_out.write(rest[index_end:index_end+len(config.end_tag)])
                             else:
                                 fd_out.write(rest[index_end:index_end])
-                        rest = rest[index_end+len(end_tag):]
+                        rest = rest[index_end+len(config.end_tag):]
                         first = ''
                     elif index_begin >= 0 and index_end >= 0:
                         if index_begin < index_end:
                             if depth == 0:
-                                if not delete_tags:
-                                    fd_out.write(rest[:index_begin+len(begin_tag)])
+                                if not config.delete_tags:
+                                    fd_out.write(rest[:index_begin+len(config.begin_tag)])
                                 else:
                                     fd_out.write(rest[:index_begin])
                             depth = depth + 1
-                            rest = rest[index_begin+len(begin_tag):]
+                            rest = rest[index_begin+len(config.begin_tag):]
                         else:
                             depth = depth - 1
                             if depth < 0:
                                 error("reach end tag before start tag")
                             if depth == 0:
-                                replace(fd_out.write)
-                                fd_out.write('hello')
+                                if config.replace:
+                                    config.replace(fd_out.write)
                                 fd_out.write(first)
-                                if not delete_tags:
-                                    fd_out.write(end_tag)
-                            rest = rest[index_end+len(end_tag):]
+                                if not config.delete_tags:
+                                    fd_out.write(config.end_tag)
+                            rest = rest[index_end+len(config.end_tag):]
                         first = ''
                 else:
                     if depth == 0:
@@ -228,9 +230,11 @@ def apply_on_file(simulate, begin_tag, end_tag, delete_tags, replace, fileinfo):
         print('Processed: %s' % (filename,), file=sys.stderr)
 
 
-def apply_replacements(simulate, begin_tag, end_tag, delete_tags, replace, files):
+
+
+def apply_replacements(config, files):
     for afile in files:
-        apply_on_file(simulate, begin_tag, end_tag, delete_tags, replace, afile)
+        apply_on_file(config, afile)
 
 
 class Config:
@@ -240,15 +244,17 @@ class Config:
         self.end_tag = None
         self.replace = None
         self.simulate = False
+        self.comment = False
+        self.uncomment = False
         self.delete_tags = False
         self.files = []
 
     def parse(self, arguments):
         opts, args = [], []
         try:
-            opts, args = getopt.getopt(arguments, "hvsdb:e:r:R:",
+            opts, args = getopt.getopt(arguments, "hvsdb:e:r:R:cu",
                                        ["help", "version", "simulate", "delete-tags", "begin-tag=", "end-tag=", "replace=",
-                                       "replace-file="])
+                                       "replace-file=", "comment", "uncomment"])
         except getopt.GetoptError as e:
             error(e)
 
@@ -260,6 +266,10 @@ class Config:
                 usage()
             if o in ("-v", "--version"):
                 version()
+            if o in ("-c", "--comment"):
+                self.comment = True
+            if o in ("-u", "--uncomment"):
+                self.uncomment = True
             if o in ("-b", "--begin-tag"):
                 self.begin_tag = a
             if o in ("-e", "--end-tag"):
@@ -286,7 +296,11 @@ class Config:
             error("option --begin-tag is required")
         if not self.end_tag:
             error("option --end-tag is required")
-        if not self.replace:
+        if self.comment and self.uncomment:
+            error("options --comment and --uncomment are exclusives")
+        if (self.comment or self.uncomment) and self.replace:
+            error("options (--comment or --uncomment) and (--replace or --replace-file) are exclusives")
+        if not self.replace and (not self.comment and not self.uncomment):
             error("option --replace or --replace-file is required")
 
 
@@ -326,6 +340,6 @@ if __name__ == '__main__':
     config.validate()
 
     paths = as_real_files(config.get_files())
-    apply_replacements(config.simulate, config.begin_tag, config.end_tag, config.delete_tags, config.replace, paths)
+    apply_replacements(config, paths)
 
     close_files(paths)
