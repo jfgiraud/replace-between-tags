@@ -151,6 +151,16 @@ def readfile(filename, fdw):
         for line in fd_in:
             fdw(line)
 
+def find_next(line, tags):
+    index_min = len(line)
+    found = None
+    for tag in tags:
+        index = line.find(tag)
+        if index != -1 and index < index_min:
+            index_min = index
+            found = tag
+    return (found, index_min) if found else (None, -1)
+
 def apply_on_file(config, fileinfo):
     (use_stdout_ori, filename) = fileinfo
     use_stdout = use_stdout_ori
@@ -163,67 +173,45 @@ def apply_on_file(config, fileinfo):
             (fno, temporary_file) = tempfile.mkstemp()
             fd_out = open(fno, 'wt')
             move = True
+        tags = { config.begin_tag, config.end_tag }
+        debug = False
         with fd_out:
             for line in fd_in:
-                rest = chomp(line)
-                first = eol(line)
+                rest = line
+                if debug:
+                    print("rest=", rest, file=sys.stderr)
                 while rest:
-                    index_begin = rest.find(config.begin_tag)
-                    index_end = rest.find(config.end_tag)
-                    if index_begin == -1 and index_end == -1:
-                        if depth == 0:
-                            fd_out.write(rest)
-                        rest = None
-                        first = ''
-                    elif index_begin >= 0 and index_end == -1:
-                        if depth == 0:
-                            if not config.delete_tags:
-                                fd_out.write(rest[:index_begin+len(config.begin_tag)])
-                            else:
-                                fd_out.write(rest[:index_begin])
-                        depth = depth + 1
-                        rest = rest[index_begin+len(config.begin_tag):]
-                        if rest == '':
-                            fd_out.write(eol(line))
-                        first = ''
-                    elif index_begin == -1 and index_end >= 0:
-                        depth = depth - 1
-                        if depth < 0:
-                            error("reach end tag before start tag")
-                        if depth == 0:
-                            if config.replace:
-                                config.replace(fd_out.write)
-                            fd_out.write(first)
-                            if not config.delete_tags:
-                                fd_out.write(rest[index_end:index_end+len(config.end_tag)])
-                            else:
-                                fd_out.write(rest[index_end:index_end])
-                        rest = rest[index_end+len(config.end_tag):]
-                        first = ''
-                    elif index_begin >= 0 and index_end >= 0:
-                        if index_begin < index_end:
-                            if depth == 0:
-                                if not config.delete_tags:
-                                    fd_out.write(rest[:index_begin+len(config.begin_tag)])
-                                else:
-                                    fd_out.write(rest[:index_begin])
-                            depth = depth + 1
-                            rest = rest[index_begin+len(config.begin_tag):]
-                        else:
-                            depth = depth - 1
-                            if depth < 0:
-                                error("reach end tag before start tag")
-                            if depth == 0:
-                                if config.replace:
-                                    config.replace(fd_out.write)
-                                fd_out.write(first)
-                                if not config.delete_tags:
-                                    fd_out.write(config.end_tag)
-                            rest = rest[index_end+len(config.end_tag):]
-                        first = ''
-                else:
+                    (next_tag, next_index) = find_next(rest, tags)
+                    if debug:
+                        print("rest=", rest, file=sys.stderr)
+                        print("nt=", next_tag, "i=", next_index, file=sys.stderr)
+                        print("----", file=sys.stderr)
                     if depth == 0:
-                        fd_out.write(eol(line))
+                        if not next_tag:
+                            fd_out.write(rest)
+                            break
+                        if next_tag == config.end_tag:
+                            error("reach end tag before start tag")
+                        if next_tag == config.begin_tag:
+                            fd_out.write(rest[:next_index])
+                            if not config.delete_tags:
+                                fd_out.write(next_tag)
+                            rest = rest[next_index+len(next_tag):]
+                            depth = depth + 1
+                    else:
+                        if not next_tag:
+                            fd_out.write(eol(rest))
+                            break
+                        if next_tag == config.begin_tag:
+                            error("reach begin tag before end tag")
+                        if next_tag == config.end_tag:
+                            config.replace(fd_out.write)
+                            if not config.delete_tags:
+                                fd_out.write(next_tag)
+                            rest = rest[next_index+len(next_tag):]
+                            depth = depth - 1
+
+#printf 'hello\ntiti*BEGIN*tutu*END*toto*BEGIN*entre\net puis la*END*fin' | ./bin/rbt -b '*BEGIN*' -e '*END*' --replace ppp
 
     if not simulate and move:
         shutil.move(temporary_file, filename)
