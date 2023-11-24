@@ -27,8 +27,17 @@ With no FILE, or when FILE is `-`, read standard input.
 *-b* _string_, *--begin-tag* _string_::
 The begin tag to search.
 
+*-d*, *--delete*::
+Delete begin/end tags after replacing.
+
+*-D*, *--dos*::
+Use Dos/Windows line ending characters.
+
 *-e* _string_, *--end-tag* _string_::
 The end tag to search.
+
+*-h*::
+Display help.
 
 *-r* _string_, *--replace* _string_::
 The string used to replace.
@@ -39,11 +48,8 @@ The file used to replace.
 *-s*, *--simulate*::
 Force output to STDOUT.
 
-*-d*, *--delete*::
-Delete begin/end tags after replacing.
-
-*-h*::
-Display help.
+*-U*, *--unix*::
+Use Unix line ending character.
 
 *-v*::
 Display version.

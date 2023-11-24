@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import getopt
+import io
 import os
 import os.path
 import re
@@ -9,9 +10,6 @@ import sys
 import tempfile
 import shutil
 import stat
-import difflib
-import shlex
-import subprocess
 
 simulate = False
 
@@ -108,6 +106,52 @@ replace-between-tags 0.0.13                                                     
 #END_DO_NOT_MODIFY:make update-doc
 '''
 
+CRLF = '\r\n'
+LF = '\n'
+CR = '\r'
+LINE_ENDING = LF
+
+
+def block_comment(prefix, suffix):
+    return lambda fd, buf: fd.write(prefix + buf.getvalue().strip() + suffix)
+
+
+def block_clean(prefix, suffix, s):
+    if s.startswith(prefix):
+        s = s[len(prefix):]
+    if s.endswith(suffix):
+        s = s[:-len(suffix)]
+    return s
+
+
+def block_uncomment(prefix, suffix):
+    return lambda fd, buf: fd.write(block_clean(prefix, suffix, buf.getvalue().strip()))
+
+
+def line_comment(prefix):
+    return lambda fd, buf: fd.write(LINE_ENDING.join([prefix + l.strip() for l in buf.getvalue().strip().split(LINE_ENDING)]))
+
+
+def line_uncomment(prefix):
+    return lambda fd, buf: fd.write(LINE_ENDING.join([l.strip() if not l.startswith(prefix) else l[len(prefix):] for l in buf.getvalue().strip().split(LINE_ENDING)]))
+
+
+def block(prefix, suffix):
+    return block_comment(prefix, suffix), block_uncomment(prefix, suffix)
+
+
+def line(prefix):
+    return line_comment(prefix), line_uncomment(prefix)
+
+styles = {
+    'java-block': block('/* ', ' */'),
+    'java-line': line('// '),
+    'bash': line('# '),
+    'sql': line('-- '),
+    'xml': block('<!-- ', ' -->')
+}
+
+
 def usage():
     lines = _USAGE.split('\n')
     display = False
@@ -120,14 +164,16 @@ def usage():
             print(line)
     sys.exit(0)
 
+
 def version():
     lines = _USAGE.split('\n')
     for i, line in enumerate(lines):
         if line.startswith("#END_DO_NOT_MODIFY:make update-doc"):
-            previous_line = lines[i-1]
+            previous_line = lines[i - 1]
             print(previous_line.split()[1])
             break
     sys.exit(0)
+
 
 def error(message):
     print(message, file=sys.stderr)
@@ -135,15 +181,11 @@ def error(message):
 
 
 def chomp(x):
-    if x.endswith("\r\n"): return x[:-2]
-    if x.endswith("\n") or x.endswith("\r"): return x[:-1]
-    return x
-
-
-def eol(x):
-    if x.endswith("\r\n"): return (x[:-2], x[-2:])
-    if x.endswith("\n") or x.endswith("\r"): return (x[:-1], x[-1:])
-    return (x, None)
+    if x.endswith(CRLF):
+        return x[:-2], x[-2:]
+    if x.endswith(LF) or x.endswith(CR):
+        return x[:-1], x[-1:]
+    return x, None
 
 
 def readfile(filename, fdw):
@@ -151,7 +193,8 @@ def readfile(filename, fdw):
         for line in fd_in:
             fdw(line)
 
-def find_next(line, tags):
+
+def find_next(line, tags, use_re=False):
     index_min = len(line)
     found = None
     for tag in tags:
@@ -161,11 +204,13 @@ def find_next(line, tags):
             found = tag
     return (found, index_min) if found else (None, -1)
 
+
 def apply_on_file(config, fileinfo):
     (use_stdout_ori, filename) = fileinfo
     use_stdout = use_stdout_ori
     move = False
     with open(filename, 'rt') as fd_in:
+        text_inside = io.StringIO()
         depth = 0
         if use_stdout or simulate:
             fd_out = open(sys.stdout.fileno(), 'w', closefd=False)
@@ -173,63 +218,83 @@ def apply_on_file(config, fileinfo):
             (fno, temporary_file) = tempfile.mkstemp()
             fd_out = open(fno, 'wt')
             move = True
-        tags = { config.begin_tag, config.end_tag }
-        debug = False
+        tags = {config.begin_tag, config.end_tag}
         with fd_out:
             for line in fd_in:
-                rest = line
-                if debug:
-                    print("rest=", rest, file=sys.stderr)
+                begin_of_line = True
+                rest, le = chomp(line)
                 while rest:
                     (next_tag, next_index) = find_next(rest, tags)
-                    if debug:
-                        print("rest=", rest, file=sys.stderr)
-                        print("depth=", depth, file=sys.stderr)
-                        print("nt=", next_tag, "i=", next_index, file=sys.stderr)
-                        print("----", file=sys.stderr)
+                    # if (config.comment or config.uncomment) and next_index != 0:
+                    #     text_inside.write(LINE_ENDING)
+                    if depth > 0 and begin_of_line and (config.comment or config.uncomment):
+                        text_inside.write(LINE_ENDING)
+                    if next_index != 0:
+                        begin_of_line = False
                     if depth == 0:
                         if not next_tag:
                             fd_out.write(rest)
                             break
-                        if next_tag == config.end_tag:
+                        if config.begin_tag != config.end_tag and next_tag == config.end_tag:
                             error("reach end tag before start tag")
                         if next_tag == config.begin_tag:
                             fd_out.write(rest[:next_index])
                             if not config.delete_tags:
                                 fd_out.write(next_tag)
-                            rest = rest[next_index+len(next_tag):]
+                            rest = rest[next_index + len(next_tag):]
+                            # if the opening tag is followed by crlf, insert it
+                            if len(rest) == 0 and le is not None:
+                                fd_out.write(LINE_ENDING)
                             depth = depth + 1
                             written = False
-                            (c, e) = eol(rest)
-                            if not e:
-                                config.replace(fd_out.write)
-                                written = True
                     else:
-                        if not next_tag:
-                            (c, e) = eol(rest)
-                            if not written:
-                                config.replace(fd_out.write)
-                                fd_out.write(e)
-                                written = True
+                        if next_tag:
+                            if config.begin_tag != config.end_tag and next_tag == config.begin_tag:
+                                depth = depth + 1
+                                if config.comment or config.uncomment:
+                                    text_inside.write("xx"+rest[:next_index])
+                                rest = rest[next_index + len(next_tag):]
+                            elif next_tag == config.end_tag:
+                                depth = depth - 1
+                                if config.comment or config.uncomment:
+                                    text_inside.write(rest[:next_index])
+                                rest = rest[next_index + len(next_tag):]
+                                if depth < 0:
+                                    error("reach end tag without corresponding begin tag")
+                                if depth == 0:
+                                    if not written:
+                                        # if begin_of_line: #config.new_line_before_end_tag:
+                                        #     fd_out.write(config.line_ending)
+                                        #print("-- %s" % text_inside.getvalue(), file=sys.stderr)
+                                        if config.comment:
+                                            styles[config.style][0](fd_out, text_inside)
+                                        elif config.uncomment:
+                                            styles[config.style][1](fd_out, text_inside)
+                                        else:
+                                            config.replace(fd_out.write)
+                                        # if config.comment or config.uncomment:
+                                        #     text_inside.write(LINE_ENDING)
+                                        if begin_of_line:
+                                            fd_out.write(LINE_ENDING)
+                                        if not config.delete_tags:
+                                            fd_out.write(next_tag)
+                                        written = True
+                                        text_inside = io.StringIO()
+                            else:
+                                error("case not supported for tag '%s'" % next_tag)
+                        else:
+                            if config.comment or config.uncomment:
+                                text_inside.write(rest)
                             break
-                        if next_tag == config.begin_tag:
-                            error("reach begin tag before end tag")
-                        if next_tag == config.end_tag:
-                            if not written:
-                                config.replace(fd_out.write)
-                                written = True
-                            if not config.delete_tags:
-                                fd_out.write(next_tag)
-                            rest = rest[next_index+len(next_tag):]
-                            depth = depth - 1
+                    begin_of_line = False
+                if depth == 0 or written:
+                    fd_out.write(LINE_ENDING)
 
-#printf 'hello\ntiti*BEGIN*tutu*END*toto*BEGIN*entre\net puis la*END*fin' | ./bin/rbt -b '*BEGIN*' -e '*END*' --replace ppp
+    # printf 'hello\ntiti*BEGIN*tutu*END*toto*BEGIN*entre\net puis la*END*fin' | ./bin/rbt -b '*BEGIN*' -e '*END*' --replace ppp
 
     if not simulate and move:
         shutil.move(temporary_file, filename)
         print('Processed: %s' % (filename,), file=sys.stderr)
-
-
 
 
 def apply_replacements(config, files):
@@ -252,14 +317,19 @@ class Config:
     def parse(self, arguments):
         opts, args = [], []
         try:
-            opts, args = getopt.getopt(arguments, "hvsdb:e:r:R:cu",
-                                       ["help", "version", "simulate", "delete-tags", "begin-tag=", "end-tag=", "replace=",
-                                       "replace-file=", "comment", "uncomment"])
+            opts, args = getopt.getopt(arguments, "hvsdb:B:e:E:r:R:c:u:DU",
+                                       ["help", "version", "simulate", "delete-tags", "begin-tag=", "begin-regexp-tag=", "end-tag=",
+                                        "end-regexp-tag=",
+                                        "replace=",
+                                        "replace-file=", "comment=", "uncomment=", "dos",
+                                        "unix"])
         except getopt.GetoptError as e:
             error(e)
 
         if len(opts) == 0:
             usage()
+
+        global LINE_ENDING
 
         for o, a in opts:
             if o in ("-h", "--help"):
@@ -268,16 +338,30 @@ class Config:
                 version()
             if o in ("-c", "--comment"):
                 self.comment = True
+                self.style = a
             if o in ("-u", "--uncomment"):
                 self.uncomment = True
+                self.style = a
             if o in ("-b", "--begin-tag"):
                 self.begin_tag = a
+                self.use_re = False
+            if o in ("-B", "--begin-regexp-tag"):
+                self.begin_tag = a
+                self.use_re = True
             if o in ("-e", "--end-tag"):
                 self.end_tag = a
+                self.use_re = False
+            if o in ("-E", "--end-regexp-tag"):
+                self.end_tag = a
+                self.use_re = True
             if o in ("-s", "--simulate"):
                 self.simulate = True
             if o in ("-d", "--delete-tags"):
                 self.delete_tags = True
+            if o in ("-D", "--dos"):
+                LINE_ENDING = CRLF
+            if o in ("-U", "--unix"):
+                LINE_ENDING = LF
             if o in ("-r", "--replace"):
                 # if -s in last position in the command line, a=''
                 # https://stackoverflow.com/questions/21053988/lambda-function-accessing-outside-variable
@@ -293,15 +377,18 @@ class Config:
 
     def validate(self):
         if not self.begin_tag:
-            error("option --begin-tag is required")
+            error("option --begin-tag or --begin-regexp-tag is required")
         if not self.end_tag:
-            error("option --end-tag is required")
+            error("option --end-tag or --end-regexp-tag is required")
         if self.comment and self.uncomment:
             error("options --comment and --uncomment are exclusives")
         if (self.comment or self.uncomment) and self.replace:
             error("options (--comment or --uncomment) and (--replace or --replace-file) are exclusives")
         if not self.replace and (not self.comment and not self.uncomment):
-            error("option --replace or --replace-file is required")
+            error("option (--comment or --uncomment) or (--replace or --replace-file) is required")
+        if self.comment or self.uncomment:
+            if self.style not in styles:
+                error("style not known")
 
 
 def create_tmp_and_init(fd_in):
@@ -334,7 +421,6 @@ def close_files(files):
 
 
 if __name__ == '__main__':
-
     config = Config()
     config.parse(sys.argv[1:])
     config.validate()
