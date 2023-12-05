@@ -143,7 +143,7 @@ EOF
 assert_exec_equals \
     "cd .. ; ./bin/rbt -b '*BEGIN*' -e '*END*' -r 'new text here' < /tmp/lorem_ipsum" \
     "${EXPECTED}" \
-    "#6: Two blocks on non consecutive lines. The second block is on two lines (force LF after begin)."
+    "#6: Two blocks on non consecutive lines. The second block is on two lines (force LF after begin)"
 
 
 ################################################################################################################
@@ -169,7 +169,7 @@ EOF
 assert_exec_equals \
     "cd .. ; ./bin/rbt -b '*BEGIN*' -e '*END*' -r 'new text here' < /tmp/lorem_ipsum" \
     "${EXPECTED}" \
-    "#7: Two blocks on non consecutive lines. The second block is on two lines (force LF after begin and before end)."
+    "#7: Two blocks on non consecutive lines. The second block is on two lines (force LF after begin and before end)"
 
 
 ################################################################################################################
@@ -193,7 +193,7 @@ EOF
 assert_exec_equals \
     "cd .. ; ./bin/rbt -b '*BEGIN*' -e '*END*' -r 'new text here' < /tmp/lorem_ipsum" \
     "${EXPECTED}" \
-    "#8: Two blocks on non consecutive lines. The second block is on two lines (force LF after begin)."
+    "#8: Two blocks on non consecutive lines. The second block is on two lines (force LF after begin)"
 
 
 ################################################################################################################
@@ -215,7 +215,7 @@ EOF
 assert_exec_equals \
     "cd .. ; ./bin/rbt -b '*BEGIN*' -e '*END*' -r 'new text here' < /tmp/lorem_ipsum" \
     "${EXPECTED}" \
-    "#9: Two blocks with end of the first block/begin of the second block are on the same line."
+    "#9: Two blocks with end of the first block/begin of the second block are on the same line"
 
 
 ################################################################################################################
@@ -387,6 +387,89 @@ assert_exec_equals \
     "cd .. ; ./bin/rbt -b '~' -e '~' --comment java-block < /tmp/lorem_ipsum" \
     "${EXPECTED}" \
     "#14: Several tests with comment /* */ (begin and end strings are equal)"
+
+rm -f /tmp/lorem_ipsum
+
+################################################################################################################
+
+cat > /tmp/lorem_ipsum <<'EOF'
+texte sans rien
+--
+texte avec un ~tag~ en plein milieu
+--
+~tag~ au début
+--
+la fin se termine par ~tag~
+--
+~tag~
+--
+la fin se termine par ~tag~
+--
+la fin se termine par ~tag
+sur deux lignes~
+--
+la fin se termine par ~tag
+sur deux lignes~ avec texte après
+--
+~tag
+sur deux lignes~
+--
+~tag
+sur deux lignes~ avec texte après
+--
+deux ~tag1~ et ~tag2~
+--
+deux ~tag1~ et ~tag sur
+ligne suivante~
+--
+entre
+~
+texte à 
+changer
+~
+EOF
+
+read -r -d '' EXPECTED <<'EOF'
+texte sans rien
+--
+texte avec un /* tag */ en plein milieu
+--
+/* tag */ au début
+--
+la fin se termine par /* tag */
+--
+/* tag */
+--
+la fin se termine par /* tag */
+--
+la fin se termine par /* tag
+sur deux lignes */
+--
+la fin se termine par /* tag
+sur deux lignes */ avec texte après
+--
+/* tag
+sur deux lignes */
+--
+/* tag
+sur deux lignes */ avec texte après
+--
+deux /* tag1 */ et /* tag2 */
+--
+deux /* tag1 */ et /* tag sur
+ligne suivante */
+--
+entre
+
+/* texte à 
+changer */
+
+EOF
+
+assert_exec_equals \
+    "cd .. ; ./bin/rbt -b '~' -e '~' --comment java-block -d < /tmp/lorem_ipsum" \
+    "${EXPECTED}" \
+    "#15: Several tests with comment /* */ (begin and end strings are equal), begin/end strings are deleted"
 
 rm -f /tmp/lorem_ipsum
 

@@ -194,10 +194,10 @@ def readfile(filename, fdw):
             fdw(line)
 
 
-def find_next(line, tags, use_re=False):
+def find_next(line, begin_tag, end_tag):
     index_min = len(line)
     found = None
-    for tag in tags:
+    for tag in {begin_tag, end_tag}:
         index = line.find(tag)
         if index != -1 and index < index_min:
             index_min = index
@@ -218,13 +218,12 @@ def apply_on_file(config, fileinfo):
             (fno, temporary_file) = tempfile.mkstemp()
             fd_out = open(fno, 'wt')
             move = True
-        tags = {config.begin_tag, config.end_tag}
         with fd_out:
             for line in fd_in:
                 begin_of_line = True
                 rest, le = chomp(line)
                 while rest:
-                    (next_tag, next_index) = find_next(rest, tags)
+                    (next_tag, next_index) = find_next(rest, config.begin_tag, config.end_tag)
                     # if (config.comment or config.uncomment) and next_index != 0:
                     #     text_inside.write(LINE_ENDING)
                     if depth > 0 and begin_of_line and (config.comment or config.uncomment):
@@ -252,7 +251,7 @@ def apply_on_file(config, fileinfo):
                             if config.begin_tag != config.end_tag and next_tag == config.begin_tag:
                                 depth = depth + 1
                                 if config.comment or config.uncomment:
-                                    text_inside.write("xx"+rest[:next_index])
+                                    text_inside.write(rest[:next_index])
                                 rest = rest[next_index + len(next_tag):]
                             elif next_tag == config.end_tag:
                                 depth = depth - 1
@@ -344,16 +343,8 @@ class Config:
                 self.style = a
             if o in ("-b", "--begin-tag"):
                 self.begin_tag = a
-                self.use_re = False
-            if o in ("-B", "--begin-regexp-tag"):
-                self.begin_tag = a
-                self.use_re = True
             if o in ("-e", "--end-tag"):
                 self.end_tag = a
-                self.use_re = False
-            if o in ("-E", "--end-regexp-tag"):
-                self.end_tag = a
-                self.use_re = True
             if o in ("-s", "--simulate"):
                 self.simulate = True
             if o in ("-d", "--delete-tags"):
