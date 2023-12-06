@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## 0.0.14 (2023-12-06)
+## 0.0.16 (2023-12-06)
 * Add comment/uncomment feature
 
 ## 0.0.13 (2023-10-23)

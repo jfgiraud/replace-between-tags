@@ -4,10 +4,10 @@
 .\" Generator: Asciidoctor 1.5.5
 .\"      Date: 2023-12-06
 .\"    Manual: User commands
-.\"    Source: replace-between-tags 0.0.14
+.\"    Source: replace-between-tags 0.0.16
 .\"  Language: English
 .\"
-.TH "RBT" "1" "2023-12-06" "replace\-between\-tags 0.0.14" "User commands"
+.TH "RBT" "1" "2023-12-06" "replace\-between\-tags 0.0.16" "User commands"
 .ie \n(.g .ds Aq \(aq
 .el       .ds Aq '
 .ss \n[.ss] 0
@@ -30,7 +30,7 @@ rbt \- Replace the text between begin and end tags
 With no FILE, or when FILE is \f[CR]\-\fP, read standard input.
 .SH "OPTIONS"
 .sp
-\fB\-b\fP \fIstring\fP, \fB\-\-begin\-string\fP \fIstring\fP
+\fB\-b\fP \fIstring\fP, \fB\-\-begin\-tag\fP \fIstring\fP
 .RS 4
 The begin string to search.
 .RE
@@ -45,7 +45,7 @@ Delete begin/end strings after replacing.
 Use Dos/Windows line ending characters.
 .RE
 .sp
-\fB\-e\fP \fIstring\fP, \fB\-\-end\-string\fP \fIstring\fP
+\fB\-e\fP \fIstring\fP, \fB\-\-end\-tag\fP \fIstring\fP
 .RS 4
 The end string to search.
 .RE
