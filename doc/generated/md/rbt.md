@@ -19,10 +19,10 @@ With no FILE, or when FILE is `-`, read standard input.
 OPTIONS
 =======
 
-**-b** *string*, **--begin-tag** *string*  
+**-b** *string*, **--begin-string** *string*  
 The begin tag to search.
 
-**-e** *string*, **--end-tag** *string*  
+**-e** *string*, **--end-string** *string*  
 The end tag to search.
 
 **-r** *string*, **--replace** *string*  

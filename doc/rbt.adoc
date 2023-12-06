@@ -24,11 +24,20 @@ With no FILE, or when FILE is `-`, read standard input.
 == OPTIONS
 
 // tag::options[]
-*-b* _string_, *--begin-tag* _string_::
-The begin tag to search.
+*-b* _string_, *--begin-string* _string_::
+The begin string to search.
 
-*-e* _string_, *--end-tag* _string_::
-The end tag to search.
+*-d*, *--delete*::
+Delete begin/end strings after replacing.
+
+*-D*, *--dos*::
+Use Dos/Windows line ending characters.
+
+*-e* _string_, *--end-string* _string_::
+The end string to search.
+
+*-h*::
+Display help.
 
 *-r* _string_, *--replace* _string_::
 The string used to replace.
@@ -39,11 +48,8 @@ The file used to replace.
 *-s*, *--simulate*::
 Force output to STDOUT.
 
-*-d*, *--delete*::
-Delete begin/end tags after replacing.
-
-*-h*::
-Display help.
+*-U*, *--unix*::
+Use Unix line ending character.
 
 *-v*::
 Display version.
@@ -52,7 +58,7 @@ Display version.
 
 == EXAMPLES
 // tag::examples[]
-.Replace between tags using stdout (`-s` option)
+.Replace between strings using stdout (`-s` option)
 [source,shell]
 ----
 $ cat /tmp/lorem_ipsum
@@ -66,7 +72,7 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit. *BEGIN*new text here
 *END*Cras rhoncus aliquam tristique.
 ----
 
-.Replace infile between tags and delete begin/end tags (`-d` option)
+.Replace infile between strings and delete begin/end strings (`-d` option)
 [source,shell]
 ----
 $ cat /tmp/lorem_ipsum
