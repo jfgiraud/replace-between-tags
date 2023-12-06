@@ -36,7 +36,7 @@ Usage
 Examples
 ========
 
-**Replace between tags using stdout (`-s` option).**
+**Replace between strings using stdout (`-s` option).**
 
     $ cat /tmp/lorem_ipsum
     Lorem ipsum dolor sit amet, consectetur adipiscing elit. *BEGIN*Pellentesque maximus faucibus lectus, in ultricies lorem volutpat in.
@@ -48,7 +48,8 @@ Examples
     Lorem ipsum dolor sit amet, consectetur adipiscing elit. *BEGIN*new text here
     *END*Cras rhoncus aliquam tristique.
 
-**Replace infile between tags and delete begin/end tags (`-d` option).**
+**Replace infile between strings and delete begin/end strings (`-d`
+option).**
 
     $ cat /tmp/lorem_ipsum
     Lorem ipsum dolor sit amet, consectetur adipiscing elit. *BEGIN*Pellentesque maximus faucibus lectus, in ultricies lorem volutpat in.
@@ -62,7 +63,7 @@ Examples
     Lorem ipsum dolor sit amet, consectetur adipiscing elit. new text here
     Cras rhoncus aliquam tristique.
 
-**Replace in file using the content of a file.**
+**Replace in file using the content of a file (`-R` option).**
 
     $ cat x
     Lorem ipsum dolor sit amet, consectetur adipiscing elit. *BEGIN*Pellentesque maximus faucibus lectus, in ultricies lorem volutpat in.

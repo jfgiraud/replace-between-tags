@@ -2,12 +2,12 @@
 .\"     Title: rbt
 .\"    Author: [see the "AUTHORS" section]
 .\" Generator: Asciidoctor 1.5.5
-.\"      Date: 2023-10-23
+.\"      Date: 2023-12-06
 .\"    Manual: User commands
-.\"    Source: replace-between-tags 0.0.13
+.\"    Source: replace-between-tags 0.0.14
 .\"  Language: English
 .\"
-.TH "RBT" "1" "2023-10-23" "replace\-between\-tags 0.0.13" "User commands"
+.TH "RBT" "1" "2023-12-06" "replace\-between\-tags 0.0.14" "User commands"
 .ie \n(.g .ds Aq \(aq
 .el       .ds Aq '
 .ss \n[.ss] 0
@@ -30,14 +30,29 @@ rbt \- Replace the text between begin and end tags
 With no FILE, or when FILE is \f[CR]\-\fP, read standard input.
 .SH "OPTIONS"
 .sp
-\fB\-b\fP \fIstring\fP, \fB\-\-begin\-tag\fP \fIstring\fP
+\fB\-b\fP \fIstring\fP, \fB\-\-begin\-string\fP \fIstring\fP
 .RS 4
-The begin tag to search.
+The begin string to search.
 .RE
 .sp
-\fB\-e\fP \fIstring\fP, \fB\-\-end\-tag\fP \fIstring\fP
+\fB\-d\fP, \fB\-\-delete\fP
 .RS 4
-The end tag to search.
+Delete begin/end strings after replacing.
+.RE
+.sp
+\fB\-D\fP, \fB\-\-dos\fP
+.RS 4
+Use Dos/Windows line ending characters.
+.RE
+.sp
+\fB\-e\fP \fIstring\fP, \fB\-\-end\-string\fP \fIstring\fP
+.RS 4
+The end string to search.
+.RE
+.sp
+\fB\-h\fP
+.RS 4
+Display help.
 .RE
 .sp
 \fB\-r\fP \fIstring\fP, \fB\-\-replace\fP \fIstring\fP
@@ -55,14 +70,9 @@ The file used to replace.
 Force output to STDOUT.
 .RE
 .sp
-\fB\-d\fP, \fB\-\-delete\fP
+\fB\-U\fP, \fB\-\-unix\fP
 .RS 4
-Delete begin/end tags after replacing.
-.RE
-.sp
-\fB\-h\fP
-.RS 4
-Display help.
+Use Unix line ending character.
 .RE
 .sp
 \fB\-v\fP
@@ -71,7 +81,7 @@ Display version.
 .RE
 .SH "EXAMPLES"
 .sp
-.B Replace between tags using stdout (\f[CR]\-s\fP option)
+.B Replace between strings using stdout (\f[CR]\-s\fP option)
 .br
 .sp
 .if n \{\
@@ -92,7 +102,7 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit. *BEGIN*new text here
 .RE
 .\}
 .sp
-.B Replace infile between tags and delete begin/end tags (\f[CR]\-d\fP option)
+.B Replace infile between strings and delete begin/end strings (\f[CR]\-d\fP option)
 .br
 .sp
 .if n \{\
@@ -115,7 +125,7 @@ Cras rhoncus aliquam tristique.
 .RE
 .\}
 .sp
-.B Replace in file using the content of a file
+.B Replace in file using the content of a file (\f[CR]\-R\fP option)
 .br
 .sp
 .if n \{\
