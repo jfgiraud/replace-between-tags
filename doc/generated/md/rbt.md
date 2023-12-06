@@ -20,10 +20,19 @@ OPTIONS
 =======
 
 **-b** *string*, **--begin-string** *string*  
-The begin tag to search.
+The begin string to search.
+
+**-d**, **--delete**  
+Delete begin/end strings after replacing.
+
+**-D**, **--dos**  
+Use Dos/Windows line ending characters.
 
 **-e** *string*, **--end-string** *string*  
-The end tag to search.
+The end string to search.
+
+**-h**  
+Display help.
 
 **-r** *string*, **--replace** *string*  
 The string used to replace.
@@ -34,11 +43,8 @@ The file used to replace.
 **-s**, **--simulate**  
 Force output to STDOUT.
 
-**-d**, **--delete**  
-Delete begin/end tags after replacing.
-
-**-h**  
-Display help.
+**-U**, **--unix**  
+Use Unix line ending character.
 
 **-v**  
 Display version.
@@ -46,7 +52,7 @@ Display version.
 EXAMPLES
 ========
 
-**Replace between tags using stdout (`-s` option).**
+**Replace between strings using stdout (`-s` option).**
 
     $ cat /tmp/lorem_ipsum
     Lorem ipsum dolor sit amet, consectetur adipiscing elit. *BEGIN*Pellentesque maximus faucibus lectus, in ultricies lorem volutpat in.
@@ -58,7 +64,8 @@ EXAMPLES
     Lorem ipsum dolor sit amet, consectetur adipiscing elit. *BEGIN*new text here
     *END*Cras rhoncus aliquam tristique.
 
-**Replace infile between tags and delete begin/end tags (`-d` option).**
+**Replace infile between strings and delete begin/end strings (`-d`
+option).**
 
     $ cat /tmp/lorem_ipsum
     Lorem ipsum dolor sit amet, consectetur adipiscing elit. *BEGIN*Pellentesque maximus faucibus lectus, in ultricies lorem volutpat in.
@@ -72,7 +79,7 @@ EXAMPLES
     Lorem ipsum dolor sit amet, consectetur adipiscing elit. new text here
     Cras rhoncus aliquam tristique.
 
-**Replace in file using the content of a file.**
+**Replace in file using the content of a file (`-R` option).**
 
     $ cat x
     Lorem ipsum dolor sit amet, consectetur adipiscing elit. *BEGIN*Pellentesque maximus faucibus lectus, in ultricies lorem volutpat in.
