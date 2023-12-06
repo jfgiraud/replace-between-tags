@@ -24,17 +24,17 @@ With no FILE, or when FILE is `-`, read standard input.
 == OPTIONS
 
 // tag::options[]
-*-b* _string_, *--begin-tag* _string_::
-The begin tag to search.
+*-b* _string_, *--begin-string* _string_::
+The begin string to search.
 
 *-d*, *--delete*::
-Delete begin/end tags after replacing.
+Delete begin/end strings after replacing.
 
 *-D*, *--dos*::
 Use Dos/Windows line ending characters.
 
-*-e* _string_, *--end-tag* _string_::
-The end tag to search.
+*-e* _string_, *--end-string* _string_::
+The end string to search.
 
 *-h*::
 Display help.
@@ -58,7 +58,7 @@ Display version.
 
 == EXAMPLES
 // tag::examples[]
-.Replace between tags using stdout (`-s` option)
+.Replace between strings using stdout (`-s` option)
 [source,shell]
 ----
 $ cat /tmp/lorem_ipsum
@@ -72,7 +72,7 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit. *BEGIN*new text here
 *END*Cras rhoncus aliquam tristique.
 ----
 
-.Replace infile between tags and delete begin/end tags (`-d` option)
+.Replace infile between strings and delete begin/end strings (`-d` option)
 [source,shell]
 ----
 $ cat /tmp/lorem_ipsum
