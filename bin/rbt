@@ -28,7 +28,7 @@ DESCRIPTION
        With no FILE, or when FILE is -, read standard input.
 
 OPTIONS
-       -b string, --begin-string string
+       -b string, --begin-tag string
            The begin string to search.
 
        -d, --delete
@@ -37,7 +37,7 @@ OPTIONS
        -D, --dos
            Use Dos/Windows line ending characters.
 
-       -e string, --end-string string
+       -e string, --end-tag string
            The end string to search.
 
        -h
@@ -200,10 +200,10 @@ def readfile(filename, fdw):
             fdw(line)
 
 
-def find_next(line, begin_string, end_string):
+def find_next(line, begin_tag, end_tag):
     index_min = len(line)
     found = None
-    for pattern in {begin_string, end_string}:
+    for pattern in {begin_tag, end_tag}:
         index = line.find(pattern)
         if index != -1 and index < index_min:
             index_min = index
@@ -229,7 +229,7 @@ def apply_on_file(config, fileinfo):
                 begin_of_line = True
                 rest, le = chomp(line)
                 while rest:
-                    (next_matching_string, next_index, matching_pattern) = find_next(rest, config.begin_string, config.end_string)
+                    (next_matching_string, next_index, matching_pattern) = find_next(rest, config.begin_tag, config.end_tag)
                     # print("->%s", str((next_matching_string, next_index, matching_pattern)), file=sys.stderr)
                     # if (config.comment or config.uncomment) and next_index != 0:
                     #     text_inside.write(LINE_ENDING)
@@ -241,9 +241,9 @@ def apply_on_file(config, fileinfo):
                         if not next_matching_string:
                             fd_out.write(rest)
                             break
-                        if config.begin_string != config.end_string and matching_pattern == config.end_string:
+                        if config.begin_tag != config.end_tag and matching_pattern == config.end_tag:
                             error("reach end tag before start tag")
-                        if matching_pattern == config.begin_string:
+                        if matching_pattern == config.begin_tag:
                             fd_out.write(rest[:next_index])
                             if not config.delete_tags:
                                 fd_out.write(next_matching_string)
@@ -255,12 +255,12 @@ def apply_on_file(config, fileinfo):
                             written = False
                     else:
                         if next_matching_string:
-                            if config.begin_string != config.end_string and matching_pattern == config.begin_string:
+                            if config.begin_tag != config.end_tag and matching_pattern == config.begin_tag:
                                 depth = depth + 1
                                 if config.comment or config.uncomment:
                                     text_inside.write(rest[:next_index])
                                 rest = rest[next_index + len(next_matching_string):]
-                            elif matching_pattern == config.end_string:
+                            elif matching_pattern == config.end_tag:
                                 depth = depth - 1
                                 if config.comment or config.uncomment:
                                     text_inside.write(rest[:next_index])
@@ -269,7 +269,7 @@ def apply_on_file(config, fileinfo):
                                     error("reach end tag without corresponding begin tag")
                                 if depth == 0:
                                     if not written:
-                                        # if begin_of_line: #config.new_line_before_end_string:
+                                        # if begin_of_line: #config.new_line_before_end_tag:
                                         #     fd_out.write(config.line_ending)
                                         #print("-- %s" % text_inside.getvalue(), file=sys.stderr)
                                         if config.comment:
@@ -311,8 +311,8 @@ def apply_replacements(config, files):
 class Config:
 
     def __init__(self):
-        self.begin_string = None
-        self.end_string = None
+        self.begin_tag = None
+        self.end_tag = None
         self.replace = None
         self.simulate = False
         self.comment = False
@@ -324,7 +324,7 @@ class Config:
         opts, args = [], []
         try:
             opts, args = getopt.getopt(arguments, "hvsdb:e:r:R:c:u:DU",
-                                       ["help", "version", "simulate", "delete-tags", "begin-string=", "end-string=",
+                                       ["help", "version", "simulate", "delete-tags", "begin-tag=", "end-tag=",
                                         "replace=",
                                         "replace-file=", "comment=", "uncomment=", "dos",
                                         "unix"])
@@ -347,10 +347,10 @@ class Config:
             if o in ("-u", "--uncomment"):
                 self.uncomment = True
                 self.style = a
-            if o in ("-b", "--begin-string"):
-                self.begin_string = a
-            if o in ("-e", "--end-string"):
-                self.end_string = a
+            if o in ("-b", "--begin-tag"):
+                self.begin_tag = a
+            if o in ("-e", "--end-tag"):
+                self.end_tag = a
             if o in ("-s", "--simulate"):
                 self.simulate = True
             if o in ("-d", "--delete-tags"):
@@ -373,10 +373,10 @@ class Config:
         return self.files
 
     def validate(self):
-        if not self.begin_string:
-            error("option --begin-string is required")
-        if not self.end_string:
-            error("option --end-string is required")
+        if not self.begin_tag:
+            error("option --begin-tag is required")
+        if not self.end_tag:
+            error("option --end-tag is required")
         if self.comment and self.uncomment:
             error("options --comment and --uncomment are exclusives")
         if (self.comment or self.uncomment) and self.replace:

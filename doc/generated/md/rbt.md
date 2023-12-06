@@ -19,7 +19,7 @@ With no FILE, or when FILE is `-`, read standard input.
 OPTIONS
 =======
 
-**-b** *string*, **--begin-string** *string*  
+**-b** *string*, **--begin-tag** *string*  
 The begin string to search.
 
 **-d**, **--delete**  
@@ -28,7 +28,7 @@ Delete begin/end strings after replacing.
 **-D**, **--dos**  
 Use Dos/Windows line ending characters.
 
-**-e** *string*, **--end-string** *string*  
+**-e** *string*, **--end-tag** *string*  
 The end string to search.
 
 **-h**  

@@ -24,7 +24,7 @@ With no FILE, or when FILE is `-`, read standard input.
 == OPTIONS
 
 // tag::options[]
-*-b* _string_, *--begin-string* _string_::
+*-b* _string_, *--begin-tag* _string_::
 The begin string to search.
 
 *-d*, *--delete*::
@@ -33,7 +33,7 @@ Delete begin/end strings after replacing.
 *-D*, *--dos*::
 Use Dos/Windows line ending characters.
 
-*-e* _string_, *--end-string* _string_::
+*-e* _string_, *--end-tag* _string_::
 The end string to search.
 
 *-h*::
